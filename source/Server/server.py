@@ -3,6 +3,15 @@ from random import randint
 import os
 
 
+def get_folder_size(folder_path):
+    size = 0
+    for path, dirs, files in os.walk(folder_path):
+        for f in files:
+            fp = os.path.join(path, f)
+            size += os.path.getsize(fp)
+    return size
+
+
 class FTP_Server:
     def __init__(self):
         self.location = __file__[:-9] + 'sources'
@@ -35,15 +44,21 @@ class FTP_Server:
             return self.getPort_to_dwld(request[5:])
 
     def list(self, request):
+        total_size = 0
         response = '\n'
         path = self.location + request
 
         for index in os.listdir(path):
             abspath = os.path.join(path, index)
             if os.path.isdir(abspath):
-                response += f'<DIR>   {index}\n'
+                total_size += get_folder_size(abspath)
+                response += f'> {index}   {get_folder_size(abspath)}\n'
             else:
-                response += f'{os.path.getsize(abspath)}   {index}\n'
+                total_size += os.path.getsize(abspath)
+                response += f'  {index}   {os.path.getsize(abspath)}\n'
+
+        response += '-'*25
+        response += f'\n Total_size: {total_size}\n'
 
         return response
 
